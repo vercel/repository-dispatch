@@ -1,0 +1,62 @@
+{
+  "name": "@vercel/repository-dispatch",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Utilities for working with dispatch events triggered by Vercel",
+  "keywords": [
+    "GitHub",
+    "Vercel"
+  ],
+  "homepage": "https://vercel.com/docs/git/vercel-for-github#repository-dispatch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vercel/repository-dispatch.git",
+    "directory": "packages/repository-dispatch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    "./context": "./src/context.ts",
+    "./types": "./src/types.ts",
+    "./data": "./src/data/index.ts",
+    "./data/common": "./src/data/common.ts",
+    "./data/deployment": "./src/data/deployment.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "context": [
+        "src/context.ts"
+      ],
+      "types": [
+        "src/types.ts"
+      ],
+      "data": [
+        "src/data/index.ts"
+      ],
+      "data/common": [
+        "src/data/common.ts"
+      ],
+      "data/deployment": [
+        "src/data/deployment.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint-fix": "eslint . --fix",
+    "test": "cross-env TZ=UTC jest --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/github": "^6.0.0"
+  },
+  "devDependencies": {
+    "eslint-config-custom": "workspace:*",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "29.2.2",
+    "ts-config": "workspace:*",
+    "ts-node": "~10.9.2",
+    "tsx": "^4.6.2",
+    "typescript": "5.7.3"
+  }
+}
