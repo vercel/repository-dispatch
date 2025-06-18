@@ -1,0 +1,11 @@
+{
+  "extends": "ts-config/tsconfig.base",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": false,
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "types": ["jest"],
+    "lib": ["ES2017"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
