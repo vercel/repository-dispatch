@@ -1,0 +1,7 @@
+{
+  "name": "@vercel/repository-dispatch-checkout",
+  "version": "0.0.1",
+  "description": "GitHub action checks out the repository from the SHA received from a repository_dispatch event",
+  "license": "MIT",
+  "author": "Vercel"
+}

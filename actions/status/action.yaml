@@ -1,0 +1,14 @@
+name: "repository_dispatch status"
+description: "GitHub action that sets the status of the workflow on the sha received from a repository_dispatch event"
+author: "Vercel"
+inputs:
+  name:
+    description: "The name of the status to set"
+    required: false
+  github_token:
+    description: "GITHUB_TOKEN"
+    default: "${{ github.token }}"
+runs:
+  using: "node20"
+  main: "dist/main.js"
+  post: "dist/post.js"

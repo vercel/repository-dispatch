@@ -1,0 +1,52 @@
+name: 'Vercel Repository Dispatch Checkout'
+description: 'Checkout for Vercel deployment events. Automatically checks out the ref from the SHA of the deployment.'
+inputs:
+  ref:
+    description: 'The branch, tag or SHA to checkout'
+    required: false
+  lfs:
+    description: 'Whether to download Git LFS files'
+    required: false
+  fetch-depth:
+    description: 'Number of commits to fetch. 0 for full history.'
+    required: false
+  token:
+    description: 'The token to use for fetching'
+    required: false
+    default: '${{ github.token }}'
+  filter:
+    description: 'Sparse checkout filter'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine ref
+      id: determine-ref
+      shell: bash
+      run: |
+        # Determine the ref to checkout
+        # If a ref is explicitly provided, use it
+        if [[ -n "${{ inputs.ref }}" ]]; then
+          echo "Using provided ref: ${{ inputs.ref }}"
+          echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+        # If the event is a repository_dispatch and the client_payload contains a SHA, use it
+        elif [[ "${{ github.event_name }}" == "repository_dispatch" && -n "${{ github.event.client_payload.git.sha }}" ]]; then
+          echo "Using client_payload SHA: ${{ github.event.client_payload.git.sha }}"
+          echo "ref=${{ github.event.client_payload.git.sha }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "Using default ref (empty)"
+          echo "ref=" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        GITHUB_EVENT_CLIENT_PAYLOAD_GIT_SHA: ${{ github.event.client_payload.git.sha }}
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ steps.determine-ref.outputs.ref }}
+        lfs: ${{ inputs.lfs }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+        token: ${{ inputs.token }}
+        filter: ${{ inputs.filter }}

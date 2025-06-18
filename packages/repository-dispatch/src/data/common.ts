@@ -10,5 +10,6 @@ export interface DispatchDataCommon {
   git: {
     ref: string;
     sha: string;
+    shortSha: string;
   };
 }

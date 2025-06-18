@@ -9,6 +9,10 @@ export interface DispatchDataDeploymentStatusEvent extends DispatchDataCommon {
    * Deployment url
    */
   url: string;
+  /**
+   * Deployment id
+   */
+  id: string;
   state: DeploymentState;
 }
 
