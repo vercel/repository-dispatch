@@ -1,0 +1,38 @@
+name: Smoke Test
+
+on:
+  repository_dispatch:
+    types:
+      - 'vercel.deployment.ready'
+
+run-name: Vercel Deployment Event - ${{ github.event.client_payload.project.name }} (${{ github.event.client_payload.state.type }})
+
+jobs:
+  validate-deployment-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: With Commit Status
+        uses: vercel/repository-dispatch/actions/status@main
+        with:
+          # This is the name of the step that will be displayed in the commit status
+          name: Hero Text Is Correct
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch and validate URL
+        id: result
+        run: |
+          set -e
+          STATUS_CODE=$(curl -s -L -o response.txt -w "%{http_code}" "${{ github.event.client_payload.url }}")
+          echo "status_code=$STATUS_CODE" >> $GITHUB_OUTPUT
+          echo "----- Response content -----"
+          cat response.txt
+          echo "----------------------------"
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "URL did not return 200 OK"
+            exit 1
+          fi
+          if grep -qi "Hello" response.txt; then
+            exit 0
+          else
+            exit 1
+          fi
