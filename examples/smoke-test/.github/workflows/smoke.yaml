@@ -10,6 +10,11 @@ run-name: Vercel Deployment Event - ${{ github.event.client_payload.project.name
 jobs:
   validate-deployment-workflow:
     runs-on: ubuntu-latest
+    # permissions only required if org / repo doesn't allow actions to write statuses by default
+    permissions:
+      actions: read
+      statuses: write
+
     steps:
       - name: With Commit Status
         uses: vercel/repository-dispatch/actions/status@main
