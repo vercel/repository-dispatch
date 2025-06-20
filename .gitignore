@@ -13,8 +13,6 @@ coverage
 .DS_Store
 *.pem
 -*.log
--dist
-dist/
 
 # debug
 npm-debug.log*
