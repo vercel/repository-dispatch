@@ -1,0 +1,67 @@
+name: Release Actions
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag name to create (e.g., v1.0.0)'
+        required: true
+        type: string
+      ref:
+        description: 'Commit SHA to tag'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout specified ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        id: pnpm-setup
+        with:
+          version: 9.4.0
+          run_install: false
+
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        id: pnpm-install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Actions
+        run: pnpm --filter @vercel/repository-dispatch-status build
+
+      - name: Validate directory exists
+        run: |
+          if [ ! -d "actions/status/dist/" ]; then
+            echo "Directory actions/status/dist/ does not exist in commit ${{ github.event.inputs.ref }}."
+            exit 1
+          fi
+
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const version = '${{ github.event.inputs.version }}';
+            const sha = '${{ github.event.inputs.ref }}';
+            const ref = `refs/tags/${version}`;
+
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: ref,
+              sha: sha
+            });
