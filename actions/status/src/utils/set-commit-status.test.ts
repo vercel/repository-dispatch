@@ -91,7 +91,7 @@ describe('setCommitStatus', () => {
 
     await setCommitStatus({ stage: 'main' });
     expect(core.warning).toHaveBeenCalledWith(
-      'No SHA found in client_payload.git.sha. Skipping status update.',
+      'Missing required fields in client_payload. Skipping status update.',
     );
     expect(mockOctokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
   });
@@ -110,6 +110,8 @@ describe('setCommitStatus', () => {
       payload: {
         client_payload: {
           git: { sha: mockSha },
+          environment: 'production',
+          project: { name: 'test-project' },
         },
       },
       repo: { owner: 'test-owner', repo: 'test-repo' },
@@ -155,6 +157,8 @@ describe('setCommitStatus', () => {
       payload: {
         client_payload: {
           git: { sha: mockSha },
+          environment: 'production',
+          project: { name: 'test-project' },
         },
       },
       repo: { owner: 'test-owner', repo: 'test-repo' },
@@ -200,6 +204,8 @@ describe('setCommitStatus', () => {
       payload: {
         client_payload: {
           git: { sha: mockSha },
+          environment: 'production',
+          project: { name: 'test-project' },
         },
       },
       repo: { owner: 'test-owner', repo: 'test-repo' },

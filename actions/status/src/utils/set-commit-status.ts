@@ -19,17 +19,24 @@ export async function setCommitStatus({
   }
 
   const sha = context.payload.client_payload?.git?.sha;
-  if (!sha) {
+  const environment = context.payload.client_payload?.environment;
+  const projectName = context.payload.client_payload?.project?.name;
+  if (!sha || !environment || !projectName) {
     core.warning(
-      'No SHA found in client_payload.git.sha. Skipping status update.',
+      'Missing required fields in client_payload. Skipping status update.',
     );
     return;
   }
 
+  const requiredContext = `(${projectName}@${sha.slice(
+    0,
+    7,
+  )} - ${environment})`;
   const token = core.getInput('github_token');
-  const contextForStatus =
-    core.getInput('name') ?? `${context.workflow} / ${context.job}`;
+  const defaultStatusName = `${context.workflow}/${context.job} ${requiredContext}`;
+  const contextForStatus = core.getInput('name') || defaultStatusName;
   const octokit = github.getOctokit(token);
+  core.debug(`status name: ${contextForStatus}`);
 
   if (stage === 'post') {
     // Give time for steps to propagate conclusions
@@ -45,7 +52,7 @@ export async function setCommitStatus({
     per_page: 100,
   });
 
-  core.info(`jobs: ${JSON.stringify(jobs, null, 2)}`);
+  core.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`);
   const octokitJob = jobs.data.jobs.find(
     (j: { name: string }) => j.name === context.job,
   );
@@ -63,7 +70,9 @@ export async function setCommitStatus({
 
   // debug job
   const state = getStatusForJob({ stage, job });
-  core.info(`Setting commit status for SHA: ${sha}, state: ${state}`);
+  core.debug(
+    `Setting commit status for SHA: ${sha}, state: ${state}, context: ${contextForStatus}`,
+  );
 
   const resp = await octokit.rest.repos.createCommitStatus({
     owner: context.repo.owner,
