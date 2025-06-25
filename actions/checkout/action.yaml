@@ -1,5 +1,5 @@
-name: 'Vercel Repository Dispatch Checkout'
-description: 'Checkout for Vercel deployment events. Automatically checks out the ref from the SHA of the deployment.'
+name: 'Vercel Repository Dispatch - Checkout'
+description: 'Action for Vercel repository dispatch deployment events. Automatically checks out the ref from the SHA of the deployment.'
 inputs:
   ref:
     description: 'The branch, tag or SHA to checkout'
