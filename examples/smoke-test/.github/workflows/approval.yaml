@@ -1,0 +1,36 @@
+name: Commit Approval
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to approve'
+        required: true
+        type: string
+
+jobs:
+  set-status:
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Set commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isPush = context.eventName === 'push';
+            const sha = isPush ? context.sha : context.payload.inputs.sha;
+            const state = isPush ? 'failure' : 'success';
+            const description = isPush ? 'Not approved' : 'Approved';
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha,
+              state,
+              context: 'Manual Approval',
+              description,
+            });
