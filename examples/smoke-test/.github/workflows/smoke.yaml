@@ -10,17 +10,18 @@ run-name: Vercel Deployment Event - ${{ github.event.client_payload.project.name
 jobs:
   validate-deployment-workflow:
     runs-on: ubuntu-latest
-    # permissions only required if org / repo doesn't allow actions to write statuses by default
+    # permissions - only required if org / repo doesn't allow actions to write commit statuses by default
     permissions:
       actions: read
       statuses: write
 
     steps:
+      - name: Vercel Repository Dispatch Debug
+        uses: vercel/repository-dispatch/actions/debug@v1
+
       - name: With Commit Status
-        uses: vercel/repository-dispatch/actions/status@main
+        uses: vercel/repository-dispatch/actions/status@v1
         with:
-          # This is the name of the step that will be displayed in the commit status
-          name: Hero Text Is Correct
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch and validate URL

@@ -1,0 +1,63 @@
+name: "Vercel Repository Dispatch - Debug"
+description: "Action for Vercel repository dispatch deployment events. Useful for viewing the full payload from the event."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Debug Client Payload
+      shell: bash
+      run: |
+        # Debugging Vercel Repository Dispatch Client Payload
+
+        echo ""
+        echo "🔍 Debugging Vercel Repository Dispatch Client Payload:"
+
+        # Check if this is a repository_dispatch event
+        if [[ "${{ github.event_name }}" != "repository_dispatch" ]]; then
+          echo "❌ This action is designed for repository_dispatch events only."
+          echo "📋 Current event type: ${{ github.event_name }}"
+          exit 0
+        fi
+
+        # Output the full client payload in a collapsible section
+        echo "::group::📦 Raw Payload (Click to expand)"
+        echo '${{ toJSON(github.event.client_payload) }}'
+        echo "::endgroup::"
+        echo ""
+
+        # output a header to indicate the individual fields
+        echo "🔍 Details"
+
+        # Output individual fields with prefixes
+        echo "::group::  - 4. 🚀 Deployment"
+        echo "🆔 Deployment ID: ${{ github.event.client_payload.id || 'None' }}"
+        echo "🌐 Deployment URL: ${{ github.event.client_payload.url || 'None' }}"
+        echo "📈 Deployment State: ${{ github.event.client_payload.state.type || 'None' }}"
+        echo "📋 Deployment State Details: ${{ github.event.client_payload.state.detail || 'N/A' }}"
+        echo "::endgroup::"
+
+        echo "::group::  - 1. 🏗️ Project"
+        echo "🆔 Project ID: ${{ github.event.client_payload.project.id || 'None' }}"
+        echo "📝 Project Name: ${{ github.event.client_payload.project.name || 'None' }}"
+        echo "::endgroup::"
+
+        echo "::group::  - 2. 🌍 Environment"
+        echo "🌱 Environment: ${{ github.event.client_payload.environment || 'None' }}"
+        echo "::endgroup::"
+
+        echo "::group::  - 3. 📚 Git"
+        echo "🌿 Git Ref: ${{ github.event.client_payload.git.ref || 'None' }}"
+        echo "🔗 Git SHA: ${{ github.event.client_payload.git.sha || 'None' }}"
+        echo "✂️ Short SHA: ${{ github.event.client_payload.git.shortSha || 'None' }}"
+        echo "::endgroup::"
+
+        # Check for error information
+        if [[ -n "${{ github.event.client_payload.error }}" ]]; then
+          echo "::group::  - 5. ❌ Error Information"
+          echo "💥 Error: ${{ github.event.client_payload.error }}"
+          echo "::endgroup::"
+        fi
+
+        echo ""
+        echo "🎉 Debug output complete!"
+        echo ""
