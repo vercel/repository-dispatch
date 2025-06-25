@@ -1,5 +1,17 @@
 name: Smoke Test
 
+# Overview
+#   This workflow can be used to make sure that the deployment is working as expected before it is automatically promoted to production.
+#
+# How it Works:
+#   1. When a deployment is ready, Vercel triggers this workflow to run.
+#   2. This workflow will then validate that the deployment is working as expected by checking the staged deployments hero text.
+#   3. If the deployment is working as expected, the workflow will set the commit status to approved.
+#   4. If the deployment is not working as expected, the workflow will set the commit status to failed.
+#
+# Connecting to your project on Vercel:
+#   1. Add the commit status created by this workflow as a required Promotion Requirement.
+
 on:
   repository_dispatch:
     types:
