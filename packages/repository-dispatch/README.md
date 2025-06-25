@@ -78,11 +78,21 @@ on:
 1. [Checkout](./actions/checkout/action.yaml) - Automatically checks out the ref from the SHA of the deployment.
 
 > [!IMPORTANT]  
-> This should be used whenever your action needs to checkout your repository and it should run in the context of the repository when the deployment was created. This is required because GitHub [repository_dispatch](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#repository_dispatch) events are always triggered using the Last commit on default branch as the GITHUB_SHA in the context of the workflow.
+> This should be used whenever your action needs to
+>
+> 1. Checkout your repository
+> 2. The checkout should run in the context of the repository when the deployment was created.
+>
+> This is required because GitHub [repository_dispatch](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#repository_dispatch) events are always triggered using the _last commit on default branch_ as the GITHUB_SHA in the context of the workflow.
 
 2. [Status](./actions/status/action.yaml) - Automatically sets a commit status for the ref associated with the deployment.
 
 > [!IMPORTANT]  
-> This should be used whenever your action needs to checkout your repository and it should run in the context of the repository when the deployment was created. This is required because GitHub [repository_dispatch](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#repository_dispatch) events are always triggered using the Last commit on default branch as the GITHUB_SHA in the context of the workflow.
+> This should be used whenever your action needs to
+>
+> 1. Checkout your repository
+> 2. The checkout should run in the context of the repository when the deployment was created.
+>
+> This is required because GitHub [repository_dispatch](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#repository_dispatch) events are always triggered using the _last commit on default branch_ as the GITHUB_SHA in the context of the workflow.
 
 3. [Debug](./actions/debug/action.yaml) - Echos the repository dispatch event payload for debugging purposes.
