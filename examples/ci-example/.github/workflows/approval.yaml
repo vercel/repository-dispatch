@@ -1,5 +1,15 @@
 name: Commit Approval
 
+# Overview
+#   This workflow can be used to manually approve commits to be deployed to production.
+#
+# How it Works:
+#   1. Every commit is automatically marked as Not approved.
+#   2. If a commit has passed manual verification, the commit status can be set to approved by manually running the workflow.
+#
+# Connecting to your project on Vercel:
+#   1. Add the Manual Approval GitHub status as a required Promotion Requirement.
+
 on:
   push:
     branches:
