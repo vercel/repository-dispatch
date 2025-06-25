@@ -48,7 +48,7 @@ on:
       - 'vercel.deployment.*'
 ```
 
-## Payload
+## Payload Example
 
 ```json
 {
@@ -70,7 +70,8 @@ on:
 }
 ```
 
-View the complete Typescript definitions for this payload [here](./packages/repository-dispatch/src/data/deployment.ts).
+> [!NOTE]  
+> View the complete Typescript definitions for this payload [here](./packages/repository-dispatch/src/data/deployment.ts).
 
 # Actions
 
