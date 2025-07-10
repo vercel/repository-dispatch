@@ -28,10 +28,7 @@ export async function setCommitStatus({
     return;
   }
 
-  const requiredContext = `(${projectName}@${sha.slice(
-    0,
-    7,
-  )} - ${environment})`;
+  const requiredContext = `(${projectName} - ${environment})`;
   const token = core.getInput('github_token');
   const defaultStatusName = `${context.workflow}/${context.job} ${requiredContext}`;
   const contextForStatus = core.getInput('name') || defaultStatusName;
