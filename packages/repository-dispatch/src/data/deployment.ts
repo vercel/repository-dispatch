@@ -13,6 +13,10 @@ export interface DispatchDataDeploymentStatusEvent extends DispatchDataCommon {
    * Deployment id
    */
   id: string;
+  /**
+   * Production aliases for successful deployments.
+   */
+  alias?: string[];
   state: DeploymentState;
 }
 
