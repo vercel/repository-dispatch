@@ -9,6 +9,6 @@ inputs:
     description: 'GITHUB_TOKEN'
     default: '${{ github.token }}'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/main.js'
   post: 'dist/post.js'
