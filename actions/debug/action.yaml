@@ -6,6 +6,20 @@ runs:
   steps:
     - name: Debug Client Payload
       shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+        DEPLOYMENT_ID: ${{ github.event.client_payload.id || 'None' }}
+        DEPLOYMENT_URL: ${{ github.event.client_payload.url || 'None' }}
+        DEPLOYMENT_STATE: ${{ github.event.client_payload.state.type || 'None' }}
+        DEPLOYMENT_STATE_DETAIL: ${{ github.event.client_payload.state.detail || 'N/A' }}
+        PROJECT_ID: ${{ github.event.client_payload.project.id || 'None' }}
+        PROJECT_NAME: ${{ github.event.client_payload.project.name || 'None' }}
+        ENVIRONMENT: ${{ github.event.client_payload.environment || 'None' }}
+        GIT_REF: ${{ github.event.client_payload.git.ref || 'None' }}
+        GIT_SHA: ${{ github.event.client_payload.git.sha || 'None' }}
+        GIT_SHORT_SHA: ${{ github.event.client_payload.git.shortSha || 'None' }}
+        DEPLOYMENT_ERROR: ${{ github.event.client_payload.error }}
       run: |
         # Debugging Vercel Repository Dispatch Client Payload
 
@@ -13,15 +27,15 @@ runs:
         echo "🔍 Debugging Vercel Repository Dispatch Client Payload:"
 
         # Check if this is a repository_dispatch event
-        if [[ "${{ github.event_name }}" != "repository_dispatch" ]]; then
+        if [[ "$EVENT_NAME" != "repository_dispatch" ]]; then
           echo "❌ This action is designed for repository_dispatch events only."
-          echo "📋 Current event type: ${{ github.event_name }}"
+          printf '📋 Current event type: %s\n' "$EVENT_NAME"
           exit 0
         fi
 
         # Output the full client payload in a collapsible section
         echo "::group::📦 Raw Payload (Click to expand)"
-        echo '${{ toJSON(github.event.client_payload) }}'
+        printf '%s\n' "$PAYLOAD"
         echo "::endgroup::"
         echo ""
 
@@ -30,31 +44,31 @@ runs:
 
         # Output individual fields with prefixes
         echo "::group::  - 4. 🚀 Deployment"
-        echo "🆔 Deployment ID: ${{ github.event.client_payload.id || 'None' }}"
-        echo "🌐 Deployment URL: ${{ github.event.client_payload.url || 'None' }}"
-        echo "📈 Deployment State: ${{ github.event.client_payload.state.type || 'None' }}"
-        echo "📋 Deployment State Details: ${{ github.event.client_payload.state.detail || 'N/A' }}"
+        printf '🆔 Deployment ID: %s\n' "$DEPLOYMENT_ID"
+        printf '🌐 Deployment URL: %s\n' "$DEPLOYMENT_URL"
+        printf '📈 Deployment State: %s\n' "$DEPLOYMENT_STATE"
+        printf '📋 Deployment State Details: %s\n' "$DEPLOYMENT_STATE_DETAIL"
         echo "::endgroup::"
 
         echo "::group::  - 1. 🏗️ Project"
-        echo "🆔 Project ID: ${{ github.event.client_payload.project.id || 'None' }}"
-        echo "📝 Project Name: ${{ github.event.client_payload.project.name || 'None' }}"
+        printf '🆔 Project ID: %s\n' "$PROJECT_ID"
+        printf '📝 Project Name: %s\n' "$PROJECT_NAME"
         echo "::endgroup::"
 
         echo "::group::  - 2. 🌍 Environment"
-        echo "🌱 Environment: ${{ github.event.client_payload.environment || 'None' }}"
+        printf '🌱 Environment: %s\n' "$ENVIRONMENT"
         echo "::endgroup::"
 
         echo "::group::  - 3. 📚 Git"
-        echo "🌿 Git Ref: ${{ github.event.client_payload.git.ref || 'None' }}"
-        echo "🔗 Git SHA: ${{ github.event.client_payload.git.sha || 'None' }}"
-        echo "✂️ Short SHA: ${{ github.event.client_payload.git.shortSha || 'None' }}"
+        printf '🌿 Git Ref: %s\n' "$GIT_REF"
+        printf '🔗 Git SHA: %s\n' "$GIT_SHA"
+        printf '✂️ Short SHA: %s\n' "$GIT_SHORT_SHA"
         echo "::endgroup::"
 
         # Check for error information
-        if [[ -n "${{ github.event.client_payload.error }}" ]]; then
+        if [[ -n "$DEPLOYMENT_ERROR" ]]; then
           echo "::group::  - 5. ❌ Error Information"
-          echo "💥 Error: ${{ github.event.client_payload.error }}"
+          printf '💥 Error: %s\n' "$DEPLOYMENT_ERROR"
           echo "::endgroup::"
         fi
 

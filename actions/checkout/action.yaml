@@ -24,23 +24,35 @@ runs:
     - name: Determine ref
       id: determine-ref
       shell: bash
-      run: |
-        # Determine the ref to checkout
-        # If a ref is explicitly provided, use it
-        if [[ -n "${{ inputs.ref }}" ]]; then
-          echo "Using provided ref: ${{ inputs.ref }}"
-          echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
-        # If the event is a repository_dispatch and the client_payload contains a SHA, use it
-        elif [[ "${{ github.event_name }}" == "repository_dispatch" && -n "${{ github.event.client_payload.git.sha }}" ]]; then
-          echo "Using client_payload SHA: ${{ github.event.client_payload.git.sha }}"
-          echo "ref=${{ github.event.client_payload.git.sha }}" >> "$GITHUB_OUTPUT"
-        else
-          echo "Using default ref (empty)"
-          echo "ref=" >> "$GITHUB_OUTPUT"
-        fi
       env:
-        GITHUB_EVENT_NAME: ${{ github.event_name }}
-        GITHUB_EVENT_CLIENT_PAYLOAD_GIT_SHA: ${{ github.event.client_payload.git.sha }}
+        INPUT_REF: ${{ inputs.ref }}
+        EVENT_NAME: ${{ github.event_name }}
+        CLIENT_PAYLOAD_GIT_SHA: ${{ github.event.client_payload.git.sha }}
+      run: |
+        # If a ref is explicitly provided, use it
+        if [[ -n "$INPUT_REF" ]]; then
+          ref="$INPUT_REF"
+          source="provided ref"
+        # If the event is a repository_dispatch and the client_payload contains a SHA, use it
+        elif [[ "$EVENT_NAME" == "repository_dispatch" && -n "$CLIENT_PAYLOAD_GIT_SHA" ]]; then
+          ref="$CLIENT_PAYLOAD_GIT_SHA"
+          source="client_payload SHA"
+        else
+          ref=""
+          source="default ref (empty)"
+        fi
+
+        if [[ "$ref" == *$'\n'* || "$ref" == *$'\r'* ]]; then
+          echo "::error::The ref must not contain newline characters"
+          exit 1
+        fi
+
+        if [[ -n "$ref" ]]; then
+          printf 'Using %s: %s\n' "$source" "$ref"
+        else
+          printf 'Using %s\n' "$source"
+        fi
+        printf 'ref=%s\n' "$ref" >> "$GITHUB_OUTPUT"
 
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #6.0.2

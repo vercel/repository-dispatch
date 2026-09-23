@@ -45,18 +45,23 @@ jobs:
         run: pnpm --filter @vercel/repository-dispatch-status build
 
       - name: Validate directory exists
+        env:
+          INPUT_REF: ${{ github.event.inputs.ref }}
         run: |
           if [ ! -d "actions/status/dist/" ]; then
-            echo "Directory actions/status/dist/ does not exist in commit ${{ github.event.inputs.ref }}."
+            printf 'Directory actions/status/dist/ does not exist in commit %s.\n' "$INPUT_REF"
             exit 1
           fi
 
       - name: Create tag
         uses: actions/github-script@v5
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_REF: ${{ github.event.inputs.ref }}
         with:
           script: |
-            const version = '${{ github.event.inputs.version }}';
-            const sha = '${{ github.event.inputs.ref }}';
+            const version = process.env.INPUT_VERSION;
+            const sha = process.env.INPUT_REF;
             const ref = `refs/tags/${version}`;
 
             github.rest.git.createRef({

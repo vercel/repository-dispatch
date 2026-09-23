@@ -1,0 +1,85 @@
+name: Test Actions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  no-expressions-in-run:
+    name: no expressions in run blocks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Untrusted values must reach scripts via env, never as interpolated script source.
+      - name: Check run blocks
+        run: |
+          matches=$(yq '.. | select(tag == "!!map" and has("run")) | .run | select(test("\$\{\{"))' actions/*/action.yaml .github/workflows/*.yml)
+          if [[ -n "$matches" ]]; then
+            echo "::error::Found GitHub expressions inside run blocks. Pass them through env instead."
+            printf '%s\n' "$matches"
+            exit 1
+          fi
+
+  checkout-injection:
+    name: checkout treats ref as data (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: command substitution
+            ref: 'poc$(touch${IFS}/tmp/canary)'
+          - name: backticks
+            ref: 'poc`touch /tmp/canary`'
+          - name: double quotes
+            ref: '"; touch /tmp/canary; "'
+          - name: single quotes
+            ref: "'; touch /tmp/canary; '"
+          - name: multi-line
+            ref: "poc\nref=main\n$(touch /tmp/canary)"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # The ref doesn't exist, so the inner checkout is expected to fail.
+      - name: Run checkout action with metacharacter ref
+        uses: ./actions/checkout
+        continue-on-error: true
+        with:
+          ref: ${{ matrix.ref }}
+
+      - name: Assert ref was not evaluated
+        run: |
+          if [[ -e /tmp/canary ]]; then
+            echo "::error::The ref input was evaluated as shell"
+            exit 1
+          fi
+
+  checkout-ref:
+    name: checkout uses provided ref
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run checkout action
+        uses: ./actions/checkout
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Assert checked out ref
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          actual=$(git rev-parse HEAD)
+          if [[ "$actual" != "$EXPECTED_SHA" ]]; then
+            printf '::error::Expected %s but checked out %s\n' "$EXPECTED_SHA" "$actual"
+            exit 1
+          fi
