@@ -52,6 +52,10 @@ on:
 
 ```json
 {
+  "alias": [
+    "example.com",
+    "www.example.com"
+  ],
   "environment": "production",
   "git": {
     "ref": "main",
@@ -64,7 +68,7 @@ on:
     "name": "example-project"
   },
   "state": {
-    "type": "pending"
+    "type": "success"
   },
   "url": "https://example-project-abc123.vercel.app"
 }
