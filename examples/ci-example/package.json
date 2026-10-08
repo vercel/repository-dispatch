@@ -5,20 +5,20 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack",
-    "lint": "next lint",
+    "lint": "biome lint",
     "start": "next start"
   },
   "dependencies": {
-    "next": "15.3.6",
+    "next": "16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint-config-next": "15.3.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
