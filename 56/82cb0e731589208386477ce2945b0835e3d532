@@ -1,0 +1,19 @@
+.github/workflows/ci.yml
+  s_45f1ae488ea144::t_fbabfe55704199 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5682cb0e731589208386477ce2945b0835e3d532",
+  "prompts": {},
+  "sessions": {
+    "s_45f1ae488ea144": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "39f12258-b947-4c99-a051-02c0a03dacc5",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Thomas Knickman <tknickman@gmail.com>"
+    }
+  }
+}
