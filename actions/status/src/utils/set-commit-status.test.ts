@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { setCommitStatus } from './set-commit-status';
-import { getStatusForJob } from './get-status-for-job';
+import { wait } from './wait';
 
 // Mock the GitHub Actions core module
 jest.mock('@actions/core');
@@ -391,5 +391,87 @@ describe('setCommitStatus', () => {
       'Run not found: 123 (test-job)',
     );
     expect(mockOctokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+  });
+
+  describe.each(['main', 'post'] as const)('%s job visibility', (stage) => {
+    const job: MockJob = {
+      name: 'test-job',
+      html_url: 'https://github.com/test',
+      steps: [{ conclusion: 'success' }],
+      run_id: 123,
+    };
+
+    beforeEach(() => {
+      (github.context as any) = {
+        eventName: 'push',
+        payload: {},
+        sha: 'abc123',
+        repo: { owner: 'test-owner', repo: 'test-repo' },
+        runId: 123,
+        job: 'test-job',
+        workflow: 'test-workflow',
+      };
+    });
+
+    it('does not retry a job that is immediately visible', async () => {
+      mockOctokit.rest.actions.listJobsForWorkflowRun.mockResolvedValue({
+        data: { jobs: [job] },
+      });
+      await setCommitStatus({ stage });
+      expect(
+        mockOctokit.rest.actions.listJobsForWorkflowRun,
+      ).toHaveBeenCalledTimes(1);
+      expect(wait).toHaveBeenCalledTimes(stage === 'post' ? 1 : 0);
+    });
+
+    it('sets status when the job appears on the final attempt', async () => {
+      const lookup = mockOctokit.rest.actions.listJobsForWorkflowRun;
+      for (let i = 0; i < 5; i++) {
+        lookup.mockResolvedValueOnce({ data: { jobs: [] } });
+      }
+      lookup.mockResolvedValueOnce({ data: { jobs: [job] } });
+      await setCommitStatus({ stage });
+      expect(lookup).toHaveBeenCalledTimes(6);
+      expect((wait as jest.Mock).mock.calls).toEqual([
+        ...(stage === 'post' ? [[5000]] : []),
+        ...Array.from({ length: 5 }, () => [2000]),
+      ]);
+      expect(mockOctokit.rest.repos.createCommitStatus).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockOctokit.rest.repos.createCommitStatus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: stage === 'main' ? 'pending' : 'success',
+          target_url: job.html_url,
+        }),
+      );
+    });
+
+    it('stops after six attempts without setting a status', async () => {
+      mockOctokit.rest.actions.listJobsForWorkflowRun.mockResolvedValue({
+        data: { jobs: [{ ...job, run_id: 456 }] },
+      });
+      await expect(setCommitStatus({ stage })).rejects.toThrow(
+        'Run not found: 123 (test-job)',
+      );
+      expect(
+        mockOctokit.rest.actions.listJobsForWorkflowRun,
+      ).toHaveBeenCalledTimes(6);
+      expect(wait).toHaveBeenCalledTimes(stage === 'post' ? 6 : 5);
+      expect(mockOctokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+    });
+
+    it('does not retry API errors', async () => {
+      mockOctokit.rest.actions.listJobsForWorkflowRun.mockRejectedValue(
+        new Error('API unavailable'),
+      );
+      await expect(setCommitStatus({ stage })).rejects.toThrow(
+        'API unavailable',
+      );
+      expect(
+        mockOctokit.rest.actions.listJobsForWorkflowRun,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockOctokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+    });
   });
 });

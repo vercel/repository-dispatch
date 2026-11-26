@@ -72,20 +72,31 @@ export async function setCommitStatus({
     await wait(5 * 1000);
   }
 
-  const jobs = await octokit.rest.actions.listJobsForWorkflowRun({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    run_id: context.runId,
-    filter: 'latest',
-    per_page: 100,
-  });
+  // A newly started job may not be visible in the workflow jobs API yet.
+  // Retry missing jobs for up to 10 seconds, without retrying API failures.
+  let octokitJob;
+  const maxAttempts = 6;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const jobs = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      run_id: context.runId,
+      filter: 'latest',
+      per_page: 100,
+    });
 
-  // find the job that matches the runId
-  core.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`);
-  core.debug(`context.runId: ${context.runId}`);
-  const octokitJob = jobs.data.jobs.find(
-    (j: (typeof jobs.data.jobs)[number]) => j.run_id === context.runId,
-  );
+    core.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`);
+    core.debug(`context.runId: ${context.runId}`);
+    octokitJob = jobs.data.jobs.find(
+      (j: (typeof jobs.data.jobs)[number]) => j.run_id === context.runId,
+    );
+    if (octokitJob || attempt === maxAttempts - 1) {
+      break;
+    }
+
+    core.info('Job not visible yet. Retrying in 2 seconds...');
+    await wait(2 * 1000);
+  }
 
   if (!octokitJob) {
     throw new Error(`Run not found: ${context.runId} (${context.job})`);
